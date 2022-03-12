@@ -45,12 +45,21 @@ exports.getUserByIdentity = async (req, res) => {
         });
       } else {
         const getUser = await user.findOne({identityNumber: dataIdentity});
-        redis.set(dataIdentity, 600, JSON.stringify(getUser));
-        res.json({
-          status: 200,
-          data: getUser,
-          message: "cache miss"
-        })
+        if(getUser !== null){
+          redis.setex(dataIdentity, 600, JSON.stringify(getUser));
+          res.json({
+            status: 200,
+            data: getUser,
+            message: "cache miss"
+          })
+        }
+        else{
+          res.status(500).json({
+            code: 500,
+            message: "Failed",
+            data: `Error while getting user detail: data null`
+          })
+        }
       }
     });
   } catch (error) {
@@ -75,12 +84,21 @@ exports.getUserByAccount = async (req, res) => {
         });
       } else {
         const getUser = await user.findOne({accountNumber: dataAccount});
-        redis.setex(dataAccount, 600, JSON.stringify(getUser));
-        res.json({
-          status: 200,
-          data: getUser,
-          message: "cache miss"
-        })
+        if(getUser !== null){
+          redis.setex(dataAccount, 600, JSON.stringify(getUser));
+          res.json({
+            status: 200,
+            data: getUser,
+            message: "cache miss"
+          })
+        }
+        else{
+          res.status(500).json({
+            code: 500,
+            message: "Failed",
+            data: `Error while getting user detail: data null`
+          })
+        }
       }
     });
   } catch (error) {
@@ -93,6 +111,7 @@ exports.getUserByAccount = async (req, res) => {
 }
 
 exports.updateByIdentity = async (req, res) => {
+  
   try {
     const editedUser = await user.findOneAndUpdate(
       {
@@ -107,17 +126,21 @@ exports.updateByIdentity = async (req, res) => {
         }
       }
     );
-    //update to redis
-    redis.set(req.params.number, 600, JSON.stringify({
-      userName: req.body.userName,
-      accountNumber: req.body.accountNumber,
-      emailAddress: req.body.emailAddress,
-      identityNumber: req.body.identityNumber
-    }));
-    res.json({
-      status: 200,
-      data: editedUser
-    })
+    if(editedUser !== null){
+      //update to redis
+      redis.flushall('ASYNC');
+      res.json({
+        status: 200,
+        data: editedUser
+      })
+    }
+    else{
+      res.status(500).json({
+        code: 500,
+        message: "Failed",
+        data: `Error while updating user detail: data null`
+      })
+    }
   } catch (error) {
     res.status(500).json({
       code: 500,
@@ -132,10 +155,21 @@ exports.deleteByIdentity = async (req, res) => {
     const deletedUser = await user.deleteOne({
       identityNumber: req.params.number
     });
-    res.json({
-      status: 200,
-      data: deletedUser
-    })
+    if(deletedUser !== null){
+      //update to redis
+      redis.flushall('ASYNC');
+      res.json({
+        status: 200,
+        data: deletedUser
+      })
+    }
+    else{
+      res.status(500).json({
+        code: 500,
+        message: "Failed",
+        data: `Error while deleting user detail: data null`
+      })
+    }
   } catch (error) {
     res.status(500).json({
       code: 500,
