@@ -1,15 +1,9 @@
 const user = require('../models/user');
-const redis = require("redis");
-const redisPort = 7960
-// const client = redis.createClient({
-//   host: 'ec2-3-229-82-55.compute-1.amazonaws.com',
-//   port: 7960,
-//   password: 'pea8d0fb0f2c05b79c63444e991eb5acbc5c72e6e7c9e3152fe0108324fafbd5e'
-// });
-
-//log error to the console if any occurs
-client.on("error", (err) => {
-  console.log(err);
+const Redis = require("ioredis");
+const redis = new Redis(process.env.REDIS_URL, {
+  tls: {
+    rejectUnauthorized: false
+  }
 });
 
 exports.createUser = async (req, res) => {
@@ -41,7 +35,7 @@ exports.createUser = async (req, res) => {
 exports.getUserByIdentity = async (req, res) => {
   const dataIdentity = req.params.number;
   try {
-    client.get(dataIdentity, async (err, userData) => {
+    redis.get(dataIdentity, async (err, userData) => {
       if (err) throw err;
 
       if (userData) {
@@ -51,7 +45,7 @@ exports.getUserByIdentity = async (req, res) => {
         });
       } else {
         const getUser = await user.findOne({identityNumber: dataIdentity});
-        client.setex(dataIdentity, 600, JSON.stringify(getUser));
+        redis.set(dataIdentity, 600, JSON.stringify(getUser));
         res.json({
           status: 200,
           data: getUser,
@@ -71,7 +65,7 @@ exports.getUserByIdentity = async (req, res) => {
 exports.getUserByAccount = async (req, res) => {
   const dataAccount = req.params.number;
   try {
-    client.get(dataAccount, async (err, userData) => {
+    redis.get(dataAccount, async (err, userData) => {
       if (err) throw err;
 
       if (userData) {
@@ -81,7 +75,7 @@ exports.getUserByAccount = async (req, res) => {
         });
       } else {
         const getUser = await user.findOne({accountNumber: dataAccount});
-        client.setex(dataAccount, 600, JSON.stringify(getUser));
+        redis.setex(dataAccount, 600, JSON.stringify(getUser));
         res.json({
           status: 200,
           data: getUser,
