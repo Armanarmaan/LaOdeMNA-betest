@@ -1,7 +1,11 @@
 const user = require('../models/user');
 const redis = require("redis");
 const redisPort = 7960
-const client = redis.createClient(redisPort);
+const client = redis.createClient({
+  host: 'ec2-3-229-82-55.compute-1.amazonaws.com',
+  port: 7960,
+  password: 'pea8d0fb0f2c05b79c63444e991eb5acbc5c72e6e7c9e3152fe0108324fafbd5e'
+});
 
 //log error to the console if any occurs
 client.on("error", (err) => {
