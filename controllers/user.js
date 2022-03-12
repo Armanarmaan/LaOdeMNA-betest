@@ -107,6 +107,13 @@ exports.updateByIdentity = async (req, res) => {
         }
       }
     );
+    //update to redis
+    redis.set(req.params.number, 600, JSON.stringify({
+      userName: req.body.userName,
+      accountNumber: req.body.accountNumber,
+      emailAddress: req.body.emailAddress,
+      identityNumber: req.body.identityNumber
+    }));
     res.json({
       status: 200,
       data: editedUser
