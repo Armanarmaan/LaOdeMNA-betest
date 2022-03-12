@@ -1,6 +1,7 @@
 const express = require('express');
 require('dotenv/config');
 const mongoose = require('mongoose');
+const port = 3000;
 
 const app = express();
 
@@ -18,4 +19,4 @@ mongoose.connect( process.env.DB_CONNECTION, { useNewUrlParser: true, useUnified
 });
 
 console.log("Listening at localhost:3000")
-app.listen(3000);
+app.listen(process.env.PORT || port);
